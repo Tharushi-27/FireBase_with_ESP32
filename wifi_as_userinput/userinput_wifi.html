@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head><title>ESP32 Control</title></head>
+<body>
+  <h1>ESP32 Relay Control</h1>
+  <button onclick="toggle(true)">ON</button>
+  <button onclick="toggle(false)">OFF</button>
+  <p>Status: <span id="status">Loading...</span></p>
+
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = { databaseURL: "https://userinput-wifi-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function toggle(state) {
+      db.ref("esp32/control/relay").set(state);
+    }
+
+    db.ref("esp32/status/relay").on("value", (snap) => {
+      document.getElementById("status").innerText = snap.val() ? "ON" : "OFF";
+    });
+  </script>
+</body>
+</html>
