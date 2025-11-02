@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ESP32 Relay + Logs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+  <style>
+    body { font-family: Arial; text-align: center; margin: 20px; background: #f5f5f5; }
+    .card { background: white; margin: 15px auto; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 600px; }
+    button { padding: 15px 30px; font-size: 18px; margin: 10px; border: none; border-radius: 8px; color: white; cursor: pointer; }
+    .on { background: #4CAF50; }
+    .off { background: #f44336; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+    th { background: #f0f0f0; }
+    .status { font-size: 24px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>ESP32 Relay Control</h1>
+    <button class="on" onclick="send(true)">ON</button>
+    <button class="off" onclick="send(false)">OFF</button>
+    <div class="status">Status: <span id="state">Loading...</span></div>
+  </div>
+
+  <div class="card">
+    <h2>State Log (Live)</h2>
+    <table id="logTable">
+      <tr><th>Time (UTC)</th><th>State</th></tr>
+    </table>
+  </div>
+
+  <script>
+    const firebaseConfig = { databaseURL: "https://save-in-a-database-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function send(state) {
+      db.ref("esp32/control/relay").set(state);
+    }
+
+    // Live status
+    db.ref("esp32/status/relay").on("value", (snap) => {
+      document.getElementById("state").innerText = snap.val() ? "ON" : "OFF";
+    });
+
+    // Live log table
+    const table = document.getElementById("logTable");
+    db.ref("esp32/log").on("child_added", (snap) => {
+      const row = table.insertRow(1); // Insert after header
+      row.insertCell(0).innerText = snap.key;
+      row.insertCell(1).innerText = snap.val();
+    });
+  </script>
+</body>
+</html>
